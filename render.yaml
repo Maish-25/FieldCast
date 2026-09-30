@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: fieldcast
+    runtime: docker
+    plan: free
+    healthCheckPath: /actuator/health

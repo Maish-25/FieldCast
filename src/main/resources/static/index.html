@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6ef">
+  <title>FieldCast | Regional weather intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="FieldCast home">
+      <span class="brand-mark" aria-hidden="true">F</span>
+      <span>fieldcast<span class="brand-period">.</span></span>
+    </a>
+    <div class="topbar-context">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span>REGIONAL WEATHER INTELLIGENCE</span>
+    </div>
+    <div class="topbar-provider">Forecast by <strong>Open-Meteo</strong></div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="side-panel" aria-label="Regional weather controls">
+      <div class="panel-heading">
+        <p class="eyebrow">FIELD CONDITIONS <span>01 / LIVE</span></p>
+        <h1>Weather,<br>where it matters.</h1>
+        <p class="intro">A local view across your growing region.</p>
+      </div>
+
+      <form class="search-form" id="search-form">
+        <label class="sr-only" for="place-search">Search for a place</label>
+        <input id="place-search" name="place" type="search" placeholder="Search a town or district" autocomplete="off" required>
+        <button type="submit" aria-label="Search location">Search</button>
+      </form>
+      <button class="location-button" id="locate-button" type="button"><span aria-hidden="true">◎</span> Use my location</button>
+
+      <section class="region-block" aria-labelledby="region-name">
+        <div class="region-row">
+          <div>
+            <p class="eyebrow">MONITORING REGION</p>
+            <h2 id="region-name">Delhi, India</h2>
+          </div>
+          <span class="region-index" id="region-radius" aria-hidden="true">5<br>KM</span>
+        </div>
+        <p class="coordinates" id="coordinates">28.6139° N · 77.2090° E</p>
+      </section>
+
+      <section class="forecast-controls" aria-labelledby="forecast-title">
+        <div class="section-title-row">
+          <h2 id="forecast-title">Forecast time</h2>
+          <span class="cell-count">UP TO 7 DAYS</span>
+        </div>
+        <label class="date-label" for="forecast-date">Date</label>
+        <input class="date-input" id="forecast-date" type="date">
+        <div class="hour-heading">
+          <label for="forecast-hour">Local hour</label>
+          <output id="forecast-hour-label" for="forecast-hour">12:00</output>
+        </div>
+        <input class="hour-slider" id="forecast-hour" type="range" min="0" max="23" step="1" value="12">
+        <div class="hour-ends"><span>00:00</span><span>23:00</span></div>
+      </section>
+
+      <section class="radius-settings" aria-labelledby="radius-title">
+        <div class="section-title-row">
+          <h2 id="radius-title">Local radius</h2>
+          <span class="cell-count" id="region-grid-count">GRID SAMPLES</span>
+        </div>
+        <div class="radius-switch" role="group" aria-label="Weather region radius">
+          <button class="radius-button active" data-radius="5" type="button" aria-pressed="true">5 km</button>
+          <button class="radius-button" data-radius="10" type="button" aria-pressed="false">10 km</button>
+        </div>
+      </section>
+
+      <section class="conditions" aria-labelledby="conditions-title">
+        <div class="section-title-row">
+          <h2 id="conditions-title">At the center</h2>
+          <span class="condition-label" id="condition-label">LOADING</span>
+        </div>
+        <div class="metrics-grid">
+          <article class="metric">
+            <span class="metric-label">AIR TEMP</span>
+            <strong id="temperature-value">--</strong>
+            <span class="metric-unit">°C</span>
+          </article>
+          <article class="metric metric-accent">
+            <span class="metric-label">RAIN CHANCE</span>
+            <strong id="probability-value">--</strong>
+            <span class="metric-unit" id="probability-unit">selected hour</span>
+          </article>
+          <article class="metric">
+            <span class="metric-label">PRECIPITATION</span>
+            <strong id="rain-value">--</strong>
+            <span class="metric-unit">mm / hour</span>
+          </article>
+          <article class="metric">
+            <span class="metric-label">WIND</span>
+            <strong id="wind-value">--</strong>
+            <span class="metric-unit" id="wind-direction">km/h</span>
+          </article>
+          <article class="metric">
+            <span class="metric-label">CLOUD COVER</span>
+            <strong id="cloud-value">--</strong>
+            <span class="metric-unit">percent</span>
+          </article>
+          <article class="metric">
+            <span class="metric-label">HUMIDITY</span>
+            <strong id="humidity-value">--</strong>
+            <span class="metric-unit">percent</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="nearby-summary" aria-label="Nearby forecast average">
+        <span class="nearby-label">NEARBY GRID AVERAGE</span>
+        <strong id="nearby-summary">Rain --% <span>·</span> Clouds --%</strong>
+      </section>
+
+      <section class="map-settings" aria-labelledby="map-title">
+        <div class="section-title-row">
+          <h2 id="map-title">Map layer</h2>
+          <span class="cell-count">NEIGHBORING CELLS</span>
+        </div>
+        <div class="layer-switch" role="group" aria-label="Weather map layer">
+          <button class="layer-button active" data-layer="rain" type="button" aria-pressed="true">Rain chance</button>
+          <button class="layer-button" data-layer="temperature" type="button" aria-pressed="false">Temperature</button>
+          <button class="layer-button" data-layer="clouds" type="button" aria-pressed="false">Cloud cover</button>
+          <button class="layer-button" data-layer="wind" type="button" aria-pressed="false">Wind flow</button>
+        </div>
+      </section>
+
+      <div class="panel-footer">
+        <span class="provider-mark" aria-hidden="true">●</span>
+        <span id="update-status" role="status">Connecting to forecast…</span>
+      </div>
+    </aside>
+
+    <section class="map-panel" aria-label="Weather map">
+      <div id="map" role="application" aria-label="Interactive map showing weather across the selected region"></div>
+      <div class="map-heading">
+        <span class="map-heading-kicker">REGION VIEW</span>
+        <strong id="map-radius-label">5 km radius</strong>
+      </div>
+      <div class="map-legend" aria-live="polite">
+        <span class="legend-title" id="legend-title">RAIN CHANCE · SELECTED HOUR</span>
+        <div class="legend-scale" id="legend-scale">
+          <span><i class="legend-swatch low"></i>Low</span>
+          <span><i class="legend-swatch medium"></i>Watch</span>
+          <span><i class="legend-swatch high"></i>High</span>
+        </div>
+      </div>
+      <button class="refresh-button" id="refresh-button" type="button" aria-label="Refresh forecast">Refresh forecast</button>
+      <div class="map-error" id="map-error" role="alert" hidden></div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
